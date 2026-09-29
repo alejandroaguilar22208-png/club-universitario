@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Club Universitario — Ingresar</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <main style="max-width: 400px; margin-top: 60px;">
+    <h1 style="text-align:center;">Club Universitario</h1>
+
+    <div class="tarjeta" id="form-login">
+      <h2>Ingresar</h2>
+      <label>Email</label>
+      <input type="email" id="login-email">
+      <label>Contraseña</label>
+      <input type="password" id="login-password">
+      <button class="principal" onclick="hacerLogin()">Ingresar</button>
+      <div id="login-mensaje"></div>
+      <div class="toggle-form">¿No tenés cuenta? <a onclick="mostrarRegistro()">Registrate</a></div>
+    </div>
+
+    <div class="tarjeta" id="form-registro" style="display:none;">
+      <h2>Crear cuenta</h2>
+      <label>Nombre</label>
+      <input type="text" id="reg-nombre">
+      <label>Email</label>
+      <input type="email" id="reg-email">
+      <label>Contraseña</label>
+      <input type="password" id="reg-password">
+      <button class="principal" onclick="hacerRegistro()">Crear cuenta</button>
+      <div id="registro-mensaje"></div>
+      <div class="toggle-form">¿Ya tenés cuenta? <a onclick="mostrarLogin()">Ingresá</a></div>
+    </div>
+  </main>
+
+  <script src="js/api.js"></script>
+  <script>
+    if (obtenerUsuario()) window.location.href = "eventos.html";
+
+    function mostrarRegistro() {
+      document.getElementById("form-login").style.display = "none";
+      document.getElementById("form-registro").style.display = "block";
+    }
+    function mostrarLogin() {
+      document.getElementById("form-registro").style.display = "none";
+      document.getElementById("form-login").style.display = "block";
+    }
+
+    async function hacerLogin() {
+      const email = document.getElementById("login-email").value;
+      const password = document.getElementById("login-password").value;
+      const mensaje = document.getElementById("login-mensaje");
+      mensaje.innerHTML = "";
+      try {
+        const resultado = await llamarApi("login.php", "POST", { email, password });
+        guardarSesion(resultado.usuario, resultado.socio);
+        window.location.href = "eventos.html";
+      } catch (error) {
+        mensaje.innerHTML = `<p class="mensaje-error">${error.message}</p>`;
+      }
+    }
+
+    async function hacerRegistro() {
+      const nombre = document.getElementById("reg-nombre").value;
+      const email = document.getElementById("reg-email").value;
+      const password = document.getElementById("reg-password").value;
+      const mensaje = document.getElementById("registro-mensaje");
+      mensaje.innerHTML = "";
+      try {
+        await llamarApi("registro.php", "POST", { nombre, email, password });
+        mensaje.innerHTML = `<p class="mensaje-exito">Cuenta creada. Ahora podés ingresar.</p>`;
+        setTimeout(mostrarLogin, 1200);
+      } catch (error) {
+        mensaje.innerHTML = `<p class="mensaje-error">${error.message}</p>`;
+      }
+    }
+  </script>
+</body>
+</html>

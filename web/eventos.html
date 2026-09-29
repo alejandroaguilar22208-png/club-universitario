@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Club Universitario — Eventos</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <nav id="nav"></nav>
+  <main>
+    <h1>Próximos eventos</h1>
+    <div id="lista-eventos">Cargando...</div>
+  </main>
+
+  <script src="js/api.js"></script>
+  <script>
+    const usuario = exigirSesion();
+    if (usuario) {
+      armarNav("eventos");
+      cargarEventos();
+    }
+
+    async function cargarEventos() {
+      const contenedor = document.getElementById("lista-eventos");
+      try {
+        const eventos = await llamarApi("eventos.php");
+        if (eventos.length === 0) {
+          contenedor.innerHTML = "<p>No hay próximos eventos por ahora.</p>";
+          return;
+        }
+        contenedor.innerHTML = eventos.map(ev => `
+          <div class="tarjeta">
+            <h2>${ev.nombre}</h2>
+            <p>${ev.descripcion ?? ""}</p>
+            <p style="color:var(--texto-suave)">${ev.fecha} — ${ev.hora_apertura}</p>
+            ${ev.tipos_entrada.map(t => `
+              <div class="tipo-entrada">
+                <div>
+                  <strong>${t.nombre}</strong><br>
+                  <span style="color:var(--texto-suave)">
+                    $${t.precio}${t.precio_socio ? ` (socio: $${t.precio_socio})` : ""}
+                  </span>
+                </div>
+                <button onclick="comprar(${t.id}, this)">Comprar</button>
+              </div>
+            `).join("")}
+          </div>
+        `).join("");
+      } catch (error) {
+        contenedor.innerHTML = `<p class="mensaje-error">${error.message}</p>`;
+      }
+    }
+
+    async function comprar(tipoEntradaId, boton) {
+      boton.disabled = true;
+      boton.textContent = "Comprando...";
+      try {
+        const resultado = await llamarApi("comprar_entrada.php", "POST", {
+          usuario_id: usuario.id,
+          tipo_entrada_id: tipoEntradaId
+        });
+        alert(`¡Entrada comprada! Precio pagado: $${resultado.precio_pagado}\nMostrá esta pantalla o tu QR en la puerta.`);
+        boton.textContent = "Comprada ✓";
+      } catch (error) {
+        alert("Error: " + error.message);
+        boton.disabled = false;
+        boton.textContent = "Comprar";
+      }
+    }
+  </script>
+</body>
+</html>

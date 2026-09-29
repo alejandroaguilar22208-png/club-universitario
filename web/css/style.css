@@ -1,0 +1,138 @@
+:root {
+  --fondo: #1a1410;
+  --tarjeta: #26201a;
+  --borde: #3d332a;
+  --naranja: #d79b00;
+  --naranja-claro: #ffe6cc;
+  --texto: #f0ece4;
+  --texto-suave: #a89f92;
+  --error: #e05c5c;
+  --exito: #6fbf73;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, sans-serif;
+  background: var(--fondo);
+  color: var(--texto);
+}
+
+nav {
+  display: flex;
+  gap: 8px;
+  padding: 16px 24px;
+  background: var(--tarjeta);
+  border-bottom: 1px solid var(--borde);
+  align-items: center;
+}
+
+nav a, nav button {
+  color: var(--texto);
+  text-decoration: none;
+  background: transparent;
+  border: 1px solid var(--borde);
+  padding: 8px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+nav a:hover, nav button:hover { border-color: var(--naranja); }
+
+nav .marca {
+  font-weight: bold;
+  color: var(--naranja);
+  margin-right: auto;
+  font-size: 18px;
+}
+
+main {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.tarjeta {
+  background: var(--tarjeta);
+  border: 1px solid var(--borde);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 16px;
+}
+
+h1, h2 { color: var(--naranja-claro); }
+
+label {
+  display: block;
+  margin: 12px 0 4px;
+  font-size: 14px;
+  color: var(--texto-suave);
+}
+
+input, select {
+  width: 100%;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid var(--borde);
+  background: var(--fondo);
+  color: var(--texto);
+  font-size: 15px;
+}
+
+button.principal {
+  margin-top: 16px;
+  width: 100%;
+  padding: 12px;
+  border-radius: 8px;
+  border: none;
+  background: var(--naranja);
+  color: #1a1410;
+  font-weight: bold;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+button.principal:hover { opacity: 0.9; }
+
+.mensaje-error {
+  color: var(--error);
+  margin-top: 10px;
+  font-size: 14px;
+}
+
+.mensaje-exito {
+  color: var(--exito);
+  margin-top: 10px;
+  font-size: 14px;
+}
+
+.tipo-entrada {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-top: 1px solid var(--borde);
+}
+
+.badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  background: var(--borde);
+  color: var(--texto-suave);
+}
+
+.badge.activa { background: var(--exito); color: #1a1410; }
+.badge.usada { background: var(--borde); }
+
+.toggle-form {
+  text-align: center;
+  margin-top: 14px;
+  font-size: 14px;
+  color: var(--texto-suave);
+}
+
+.toggle-form a { color: var(--naranja); cursor: pointer; }

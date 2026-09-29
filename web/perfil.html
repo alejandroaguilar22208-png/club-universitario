@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Club Universitario — Mi perfil</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <nav id="nav"></nav>
+  <main>
+    <h1>Mi perfil</h1>
+    <div class="tarjeta" id="datos-usuario"></div>
+
+    <h2>Mis premios</h2>
+    <div class="tarjeta" id="lista-premios">Cargando...</div>
+
+    <h2>Mis entradas</h2>
+    <div class="tarjeta" id="lista-entradas">Cargando...</div>
+
+    <h2>Mis reservas</h2>
+    <div class="tarjeta" id="lista-reservas">Cargando...</div>
+  </main>
+
+  <script src="js/api.js"></script>
+  <script>
+    const usuario = exigirSesion();
+
+    if (usuario) {
+      armarNav("perfil");
+      mostrarDatosUsuario();
+      cargarPremios();
+      cargarEntradas();
+      cargarReservas();
+    }
+
+    function mostrarDatosUsuario() {
+      const socio = esSocio();
+      document.getElementById("datos-usuario").innerHTML = `
+        <p><strong>${usuario.nombre}</strong> — ${usuario.email}</p>
+        ${socio && socio.activo
+          ? `<span class="badge activa">Socio — ${socio.porcentaje_descuento}% de descuento</span>`
+          : `<span class="badge">No sos socio todavía</span>`}
+      `;
+    }
+
+    async function cargarPremios() {
+      const contenedor = document.getElementById("lista-premios");
+      try {
+        const datos = await llamarApi("mis_premios.php?usuario_id=" + usuario.id);
+        contenedor.innerHTML = `
+          <p style="color:var(--texto-suave)">
+            Visitas al quincho: ${datos.cantidad_visitas} — Consumo acumulado: $${datos.monto_acumulado}
+          </p>
+        ` + datos.premios.map(p => `
+          <div class="tipo-entrada">
+            <div>
+              <strong>${p.nombre}</strong><br>
+              <span style="color:var(--texto-suave)">${p.descripcion ?? ""}</span>
+            </div>
+            ${p.ya_canjeado
+              ? `<span class="badge activa">Canjeado</span>`
+              : p.cumple_condicion
+                ? `<button onclick="canjear(${p.id}, this)">Canjear</button>`
+                : `<span class="badge">Todavía no</span>`}
+          </div>
+        `).join("");
+      } catch (error) {
+        contenedor.innerHTML = `<p class="mensaje-error">${error.message}</p>`;
+      }
+    }
+
+    async function canjear(premioId, boton) {
+      boton.disabled = true;
+      try {
+        await llamarApi("canjear_premio.php", "POST", { usuario_id: usuario.id, premio_id: premioId });
+        cargarPremios();
+      } catch (error) {
+        alert("Error: " + error.message);
+        boton.disabled = false;
+      }
+    }
+
+    async function cargarEntradas() {
+      const contenedor = document.getElementById("lista-entradas");
+      try {
+        const entradas = await llamarApi("mis_entradas.php?usuario_id=" + usuario.id);
+        contenedor.innerHTML = entradas.length === 0
+          ? "<p>Todavía no compraste ninguna entrada.</p>"
+          : entradas.map(e => `
+              <div class="tipo-entrada">
+                <div>${e.evento_nombre} (${e.tipo_nombre}) — ${e.evento_fecha}</div>
+                <span class="badge ${e.estado}">${e.estado}</span>
+              </div>
+            `).join("");
+      } catch (error) {
+        contenedor.innerHTML = `<p class="mensaje-error">${error.message}</p>`;
+      }
+    }
+
+    async function cargarReservas() {
+      const contenedor = document.getElementById("lista-reservas");
+      try {
+        const reservas = await llamarApi("mis_reservas.php?usuario_id=" + usuario.id);
+        contenedor.innerHTML = reservas.length === 0
+          ? "<p>Todavía no reservaste ninguna mesa.</p>"
+          : reservas.map(r => `
+              <div class="tipo-entrada">
+                <div>Mesa ${r.mesa_numero} — ${r.fecha} ${r.hora} (${r.cantidad_personas} personas)</div>
+                <span class="badge">${r.estado}</span>
+              </div>
+            `).join("");
+      } catch (error) {
+        contenedor.innerHTML = `<p class="mensaje-error">${error.message}</p>`;
+      }
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Club Universitario — Reservar mesa</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <nav id="nav"></nav>
+  <main>
+    <h1>Reservar mesa</h1>
+
+    <div class="tarjeta">
+      <label>Fecha</label>
+      <input type="date" id="fecha" onchange="buscarMesas()">
+      <div id="lista-mesas" style="margin-top:16px;"></div>
+    </div>
+  </main>
+
+  <script src="js/api.js"></script>
+  <script>
+    const usuario = exigirSesion();
+    if (usuario) armarNav("mesas");
+
+    let mesaSeleccionada = null;
+
+    async function buscarMesas() {
+      const fecha = document.getElementById("fecha").value;
+      const contenedor = document.getElementById("lista-mesas");
+      if (!fecha) return;
+      contenedor.innerHTML = "Buscando...";
+      try {
+        const mesas = await llamarApi("mesas_disponibles.php?fecha=" + fecha);
+        if (mesas.length === 0) {
+          contenedor.innerHTML = "<p>No quedan mesas libres para esa fecha.</p>";
+          return;
+        }
+        contenedor.innerHTML = mesas.map(m => `
+          <div class="tipo-entrada">
+            <div>Mesa ${m.numero} — capacidad ${m.capacidad} (${m.ubicacion ?? ""})</div>
+            <button onclick="seleccionarMesa(${m.id}, ${m.capacidad}, this)">Elegir</button>
+          </div>
+        `).join("") + `
+          <label>Hora</label>
+          <input type="time" id="hora">
+          <label>Cantidad de personas</label>
+          <input type="number" id="cantidad" min="1">
+          <button class="principal" onclick="confirmarReserva()">Confirmar reserva</button>
+          <div id="reserva-mensaje"></div>
+        `;
+      } catch (error) {
+        contenedor.innerHTML = `<p class="mensaje-error">${error.message}</p>`;
+      }
+    }
+
+    function seleccionarMesa(id, capacidad, boton) {
+      mesaSeleccionada = id;
+      document.querySelectorAll(".tipo-entrada button").forEach(b => b.textContent = "Elegir");
+      boton.textContent = "Elegida ✓";
+    }
+
+    async function confirmarReserva() {
+      const mensaje = document.getElementById("reserva-mensaje");
+      if (!mesaSeleccionada) {
+        mensaje.innerHTML = `<p class="mensaje-error">Elegí una mesa primero</p>`;
+        return;
+      }
+      try {
+        await llamarApi("reservar_mesa.php", "POST", {
+          usuario_id: usuario.id,
+          mesa_id: mesaSeleccionada,
+          fecha: document.getElementById("fecha").value,
+          hora: document.getElementById("hora").value,
+          cantidad_personas: document.getElementById("cantidad").value
+        });
+        mensaje.innerHTML = `<p class="mensaje-exito">¡Mesa reservada!</p>`;
+      } catch (error) {
+        mensaje.innerHTML = `<p class="mensaje-error">${error.message}</p>`;
+      }
+    }
+  </script>
+</body>
+</html>
